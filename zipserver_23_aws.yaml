@@ -1,0 +1,96 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zipserver-2
+  labels:
+    app: zipserver-2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: zipserver-2
+  template:
+    metadata:
+      labels:
+        app: zipserver-2
+    spec:
+      containers:
+      - name: zipserver
+        image: ajju4988/zipserver:0.9
+        env:
+        - name: ZIPKIN_SERVER
+          value: "wavefront-proxy:9411"
+        - name: NEXT_SERVER
+          value: "zipserver-3:8083"
+        - name: SERVICE_NAME
+          value: "cala-octo-service-2"
+        - name: PORT
+          value: "8082"
+        - name: NEXT_SERVER_NAME
+          value: "cala-octo-service-3"
+        ports:
+        - containerPort: 8082
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zipserver-3
+  labels:
+    app: zipserver-3
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: zipserver-3
+  template:
+    metadata:
+      labels:
+        app: zipserver-3
+    spec:
+      containers:
+      - name: zipserver
+        image: ajju4988/zipserver:0.9
+        env:
+        - name: ZIPKIN_SERVER
+          value: "wavefront-proxy:9411"
+        - name: NEXT_SERVER
+          value: "zipserver-3:8083"
+        - name: SERVICE_NAME
+          value: "cala-octo-service-3"
+        - name: PORT
+          value: "8083"
+        - name: NEXT_SERVER_NAME
+          value: "cala-octo-service-3"
+        - name: LAST_SERVER
+          value: "true"
+        ports:
+        - containerPort: 8083
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: zipserver-2
+  labels:
+    app: zipserver-2
+    service: zipserver-2
+spec:
+  ports:
+  - port: 8082
+    name: http
+  selector:
+    app: zipserver-2
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: zipserver-3
+  labels:
+    app: zipserver-3
+    service: zipserver-3
+spec:
+  ports:
+  - port: 8083
+    name: http
+  selector:
+    app: zipserver-3

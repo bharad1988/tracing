@@ -1,0 +1,57 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: zipserver-gateway
+spec:
+  selector:
+    istio: ingressgateway # use istio default controller
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - "*"
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: zipserver
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - zipserver-gateway
+  http:
+  - match:
+    - uri:
+        prefix: /cala-octo-service-3
+    route:
+    - destination:
+        host: zipserver-3
+        port:
+          number: 8083
+  - match:
+    - uri:
+        prefix: /cala-octo-service-2
+    route:
+    - destination:
+        host: zipserver-2
+        port:
+          number: 8082
+  - match:
+    - uri:
+        prefix: /api/v2/spans
+    route:
+    - destination:
+        host: wavefront-proxy
+        port:
+          number: 9411
+  - match:
+    - uri:
+        prefix: /
+    route:
+    - destination:
+        host: frontend
+        port:
+          number: 80
